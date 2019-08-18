@@ -1,11 +1,8 @@
 #include <tuple>
-#include <vector>
 #include <iostream>
 #include <type_traits>
-#include <functional>
 
 using namespace std;
-
 
 enum EventType {
 	E0,
@@ -15,57 +12,13 @@ enum EventType {
 	E4,
 };
 
-template<EventType e, typename... Args>
-class Signal
-{
-public:
-	typedef int (*Func)(Args...);
-	void bind(Func func)
-	{
-		cout << "Enum:" << e << " bind." << endl;
-		m_slots.push_back(func);
-	}
-
-	/* ÖØÔØ²Ù×÷·û -> signal´¥·¢»úÖÆ */
-	void operator()(Args... args)
-	{
-		cout << "Enum:" << e << " call." << endl;
-		for (auto s: m_slots)
-		{
-			s(args...);
-		}
-	}
-
-	static Signal<e, Args...>& instance() {
-		static Signal<e, Args...> sig;
-		return sig;
-	}
-private:
-	std::vector<Func>m_slots;
-};
-
-int call1(int p1) {
-	std::cout << "call1:" << p1 << endl;
-	return 0;
-}
-
-int call2(int p1, int p2) {
-	std::cout << "call2:" << p2 << endl;
-	return 0;
-}
-
-int call3(int p1, int p2, int p3) {
-	std::cout << "call3:" << p3 << endl;
-	return 0;
-}
-
-#define EVENT_TUPLE(e, ...) tuple<integral_constant<decltype(e), e>, Signal<e, __VA_ARGS__>>
+#define EVENT_TUPLE(e, type) tuple<integral_constant<decltype(e), e>, type>
 
 typedef tuple<  EVENT_TUPLE(E1, int),
-				EVENT_TUPLE(E4, int),
-				EVENT_TUPLE(E2, int, int),
-				EVENT_TUPLE(E3, int, int, int),
-void> TUPLE;
+	EVENT_TUPLE(E4, long),
+	EVENT_TUPLE(E2, int*),
+	EVENT_TUPLE(E3, char),
+	void> TUPLE;
 
 #define TUPLE_TYPE(t, index) typename std::tuple_element<index, t>::type
 #define TUPLE_MAX (std::tuple_size<TUPLE>::value - 1)
@@ -77,7 +30,7 @@ struct Finder {
 
 	typedef std::is_same<std::integral_constant<decltype(e), e>, EnumType> IsSame;
 	typedef ElemType TrueType;
-	typedef typename Finder<e, index+1>::Result FalseType;
+	typedef typename Finder<e, index + 1>::Result FalseType;
 	typedef typename std::conditional<IsSame::value, TrueType, FalseType>::type Result;
 };
 
@@ -86,20 +39,8 @@ struct Finder<e, TUPLE_MAX> {
 	typedef void Result;
 };
 
-#define EVENT_BIND(e, func) {Finder<e, 0>::Result::instance().bind(func);}
-#define EVENT_CALL(e, ...) {Finder<e, 0>::Result::instance()(__VA_ARGS__);}
-
+#define FIND_TYPE(e) Finder<e, 0>::Result
 int main() {
-	EVENT_BIND(E1, call1);
-	//EVENT_CALL(E1, 1, 2);
-	//EVENT_BIND(E1, call2);
-	EVENT_CALL(E1, 1);
-	EVENT_BIND(E2, call2);
-	EVENT_CALL(E2, 1, 2);
-	EVENT_BIND(E3, call3);
-	EVENT_CALL(E3, 1, 2, 3);
-	EVENT_BIND(E4, call1);
-	EVENT_CALL(E1, 1);
-	EVENT_CALL(E4, 4);
+	std::cout << typeid(FIND_TYPE(E1)).name() << std::endl;
 	return 0;
 }
