@@ -26,7 +26,7 @@ public:
 		m_slots.push_back(func);
 	}
 
-	/* 重载操作符 -> signal触发机制 */
+	/* 脰脴脭脴虏脵脳梅路没 -> signal麓楼路垄禄煤脰脝 */
 	void operator()(Args... args)
 	{
 		cout << "Enum:" << e << " call." << endl;
@@ -59,7 +59,7 @@ int call3(int p1, int p2, int p3) {
 	return 0;
 }
 
-#define EVENT_TUPLE(e, ...) tuple<integral_constant<EventType, e>, Signal<e, __VA_ARGS__>>
+#define EVENT_TUPLE(e, ...) tuple<integral_constant<decltype(e), e>, Signal<e, __VA_ARGS__>>
 
 typedef tuple<  EVENT_TUPLE(E1, int),
 				EVENT_TUPLE(E4, int),
@@ -75,7 +75,7 @@ struct Finder {
 	typedef TUPLE_TYPE(TUPLE_TYPE(TUPLE, index), 0) EnumType;
 	typedef TUPLE_TYPE(TUPLE_TYPE(TUPLE, index), 1) ElemType;
 
-	typedef std::is_same<std::integral_constant<EventType, e>, EnumType> IsSame;
+	typedef std::is_same<std::integral_constant<decltype(e), e>, EnumType> IsSame;
 	typedef ElemType TrueType;
 	typedef typename Finder<e, index+1>::Result FalseType;
 	typedef typename std::conditional<IsSame::value, TrueType, FalseType>::type Result;
